@@ -36,6 +36,10 @@ jobs:
       - name: Build and test with Maven
         run: mvn clean verify
 
+      # Step: Install xmllint dependency
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
       # Step: Bump version after successful test
       - name: Bump minor version
         run: |
