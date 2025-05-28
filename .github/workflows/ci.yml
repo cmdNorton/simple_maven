@@ -41,33 +41,25 @@ jobs:
       - name: Install xmllint
         run: sudo apt-get update && sudo apt-get install -y libxml2-utils
 
-      # Step: Bump version after successful test
-      - name: Bump minor version
+      # Step: Determine next version from Git tags
+      - name: Compute next version from latest tag
         run: |
-          # Extract current version string from pom.xml using xmllint
-          current=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+          # Get the most recent tag (sorted by date, not semver)
+          latest=$(git tag --sort=-creatordate | head -n1)
 
-          # Remove '-SNAPSHOT' if it's present (safe even if it's not)
-          base=${current%-SNAPSHOT}
+          # Fallback if no tag exists
+          if [[ -z "$latest" ]]; then
+            new_version="1.2.0"
+          else
+            major=$(echo "$latest" | cut -d. -f1)
+            minor=$(echo "$latest" | cut -d. -f2)
+            next_minor=$((minor + 1))
+            new_version="$major.$next_minor.0"
+          fi
 
-          # Split major and minor parts based on dot delimiter
-          major=$(echo $base | cut -d. -f1)
-          minor=$(echo $base | cut -d. -f2)
-
-          # Increment the minor version
-          next_minor=$((minor + 1))
-
-          # Construct new version string (resets patch to 0)
-          new_version="$major.$next_minor.0"
-
-          # Print new version (for debug/logging)
-          echo "New version: $new_version"
-
-          # Replace version in pom.xml using sed
-          sed -i "s|<version>.*</version>|<version>$new_version</version>|" pom.xml
-
-          # Export new version as environment variable for later steps
+          echo "Computed version: $new_version"
           echo "VERSION=$new_version" >> $GITHUB_ENV
+
 
       # Step: Authenticate to Docker Hub using GitHub Secrets
       - name: Docker login
