@@ -69,7 +69,7 @@ jobs:
           # Export new version as environment variable for later steps
           echo "VERSION=$new_version" >> $GITHUB_ENV
 
-       - name: Debug secrets (TEMPORARY)
+      - name: Debug secrets (TEMPORARY)
         run: |
           echo "USERNAME: ${{ secrets.DOCKER_USERNAME }}"
           echo "PASSWORD length: ${#${{ secrets.DOCKER_PASSWORD }}}"
